@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>NeuroSIG × Baseline Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+</head>
+<body style="font-family:system-ui;margin:40px">
+  <h1>NeuroSIG × Baseline Demo</h1>
+  <p>Prototype: translate plain questions → Baseline-style query (feature / engine / version).</p>
+
+  <input id="q" placeholder='e.g. "Can I use CSS :has() on iOS 15? Fallback?"'
+         style="padding:10px;width:100%;max-width:560px" />
+  <button id="go" style="padding:10px 14px;margin-left:8px">Translate</button>
+
+  <pre id="out" style="background:#111;color:#e6edf3;padding:12px;border-radius:8px;margin-top:16px">—</pre>
+
+  <div style="margin-top:8px">
+    <button id="copy" style="padding:8px 12px">Copy query</button>
+    <a id="open" href="https://web.dev/baseline/" target="_blank" rel="noopener">
+      <button style="padding:8px 12px">Open Baseline (paste query)</button>
+    </a>
+    <span id="msg" style="margin-left:8px;color:#0a7c2f"></span>
+  </div>
+
+  <script>
+    const featureMap = new Map([
+      [":has", "css.selectors.has"], ["has()", "css.selectors.has"],
+      ["view transitions","api.view-transitions"],
+      ["webcodecs","api.webcodecs"], ["import maps","js.import-maps"]
+    ]);
+    const engineMap = new Map([
+      ["ios","safari"], ["iphone","safari"], ["safari","safari"],
+      ["chrome","chrome"], ["edge","edge"], ["firefox","firefox"],
+      ["android","chrome-android"]
+    ]);
+    const wantsFallback = t => /fallback|polyfill|alternative/i.test(t);
+    const parseVer = t => (t.match(/(?:ios|safari|chrome|firefox|edge|android)?\s*([0-9]{1,2}(?:\.[0-9])?)/i)||[])[1];
+
+    function detect(map, text){
+      const l = text.toLowerCase();
+      for (const [k,v] of map) if (l.includes(k)) return v;
+      return null;
+    }
+    function toBaselineQuery(nl){
+      const parts = [];
+      const feat = detect(featureMap, nl);
+      const eng  = detect(engineMap, nl);
+      const ver  = parseVer(nl);
+      if (feat) parts.push(`feature:${feat}`);
+      if (eng)  parts.push(`engine:${eng}`);
+      if (ver)  parts.push(`version>=${ver}`);
+      if (wantsFallback(nl)) parts.push(`need:fallback`);
+      if (!feat) parts.push(`text:"${nl.replace(/"/g,'\\"')}"`);
+      return parts.join(" AND ");
+    }
+
+    const q = document.getElementById("q");
+    const out = document.getElementById("out");
+    const msg = document.getElementById("msg");
+    document.getElementById("go").onclick = () => {
+      const s = q.value.trim(); if (!s) return;
+      out.textContent = toBaselineQuery(s);
+      msg.textContent = "";
+    };
+    document.getElementById("copy").onclick = async () => {
+      const s = out.textContent.trim(); if (!s || s==="—") return;
+      try { await navigator.clipboard.writeText(s); msg.textContent = "Copied ✓"; }
+      catch { msg.textContent = "Copy failed"; }
+    };
+  </script>
+</body>
+</html>
