@@ -1,7 +1,6 @@
 # NeuroSIG × Baseline — Demo
 
-**Live demo:** `https://<YOUR-USERNAME>.github.io/<REPO-NAME>/`  
-**Code:** `https://github.com/<YOUR-USERNAME>/<REPO-NAME>`
+
 
 ## What this is
 A small **bridge** that **matches natural-language questions** to **Baseline’s query grammar/tooling**. Baseline already has excellent feature data; NeuroSIG removes the friction of “how do I phrase the query?” so developers reach the right signals faster.
